@@ -1,0 +1,17 @@
+# Secrets — never commit these
+.env
+
+# Database (local only; use a Railway Volume in production)
+readings.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jyotish — Vedic Astrology</title>
+<script src="/static/marked.min.js"></script>
+<style>
+/* ── Midnight (default dark) ── */
+:root {
+  --bg: #07070f;
+  --surface: #0f0f1e;
+  --surface2: #16162a;
+  --surface3: #1e1e35;
+  --gold: #c8973a;
+  --gold-bright: #e8b84b;
+  --gold-dim: #7a5c22;
+  --text: #dcdcee;
+  --text-dim: #8888aa;
+  --purple: #6b4fbd;
+  --teal: #2d8c8c;
+  --red: #c44;
+  --border: #2a2a45;
+  --radius: 10px;
+  --error-bg: #2a0808;
+  --error-text: #ff8888;
+  --bg-overlay: radial-gradient(ellipse at 20% 20%, #1a0a3a22 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, #0a1a3a22 0%, transparent 60%);
+}
+
+/* ── Parchment (light) ── */
+html[data-theme="parchment"] {
+  --bg: #f5f0e6;
+  --surface: #ffffff;
+  --surface2: #ede8da;
+  --surface3: #e2dac8;
+  --gold: #7a5c10;
+  --gold-bright: #8b6914;
+  --gold-dim: #b08c40;
+  --text: #1e1408;
+  --text-dim: #7a6040;
+  --purple: #5a3d8a;
+  --teal: #1f6f6f;
+  --red: #a03030;
+  --border: #ccc0a0;
+  --error-bg: #fce8e8;
+  --error-text: #9a2020;
+  --bg-overlay: radial-gradient(ellipse at 30% 20%, #c8a05018 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, #a0802018 0%, transparent 60%);
+}
+
+/* ── Saffron ── */
+html[data-theme="saffron"] {
+  --bg: #180c00;
+  --surface: #231200;
+  --surface2: #2e1800;
+  --surface3: #3a1f00;
+  --gold: #f09020;
+  --gold-bright: #ffaa44;
+  --gold-dim: #b86e10;
+  --text: #ffe8cc;
+  --text-dim: #cc9966;
+  --purple: #e08040;
+  --teal: #60c080;
+  --red: #e04030;
+  --border: #4a2c00;
+  --error-bg: #2a0a00;
+  --error-text: #ff9966;
+  --bg-overlay: radial-gradient(ellipse at 20% 20%, #ff880022 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, #cc550022 0%, transparent 60%);
+}
+
+/* ── Twilight ── */
+html[data-theme="twilight"] {
+  --bg: #080612;
+  --surface: #100c20;
+  --surface2: #17122c;
+  --surface3: #201a38;
+  --gold: #b090f0;
+  --gold-bright: #ccaaff;
+  --gold-dim: #7050c0;
+  --text: #eae0ff;
+  --text-dim: #9880c8;
+  --purple: #9070e0;
+  --teal: #50b8b8;
+  --red: #e05878;
+  --border: #281e50;
+  --error-bg: #1a0828;
+  --error-text: #ff99cc;
+  --bg-overlay: radial-gradient(ellipse at 20% 20%, #4020a030 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, #200c6030 0%, transparent 60%);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Ambient background overlay ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: var(--bg-overlay);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container { max-width: 900px; margin: 0 auto; padding: 24px 20px; position: relative; z-index: 1; }
+
+/* ── Header ── */
+header { text-align: center; padding: 40px 0 32px; }
+.logo {
+  font-size: 13px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 8px;
+}
+header h1 {
+  font-size: 38px;
+  font-weight: 300;
+  letter-spacing: 3px;
+  color: var(--gold-bright);
+  margin-bottom: 8px;
+}
+header p { color: var(--text-dim); font-size: 14px; letter-spacing: 1px; }
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  margin: 0 0 32px;
+}
+
+/* ── Form card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+}
+.card-title {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 20px;
+}
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 12px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; }
+input, select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 15px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+input:focus, select:focus { border-color: var(--gold-dim); }
+select option { background: var(--surface2); }
+
+/* ── Custom lat/lon row ── */
+#custom-coords { display: none; gap: 12px; margin-top: 8px; }
+#custom-coords.visible { display: flex; }
+#custom-coords input { flex: 1; }
+
+/* ── Submit ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  border: none; border-radius: 8px;
+  color: #0a0a0a;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 12px 28px;
+  text-transform: uppercase;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 8px;
+}
+.btn:hover { opacity: 0.9; }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Loading ── */
+#loading { display: none; text-align: center; padding: 48px; }
+#loading.visible { display: block; }
+.spinner {
+  width: 48px; height: 48px;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: var(--text-dim); font-size: 13px; letter-spacing: 1px; }
+.loading-steps { margin-top: 12px; font-size: 12px; color: var(--gold-dim); }
+
+/* ── Results ── */
+#results { display: none; }
+#results.visible { display: block; }
+
+/* ── Section headers ── */
+.section-header {
+  display: flex; align-items: center; gap: 12px;
+  margin: 28px 0 16px;
+}
+.section-header .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+}
+.section-header h2 {
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  font-weight: 400;
+}
+.section-header .line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Birth summary ── */
+.birth-summary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  display: flex; flex-wrap: wrap; gap: 24px;
+}
+.birth-item { display: flex; flex-direction: column; gap: 2px; }
+.birth-item .label { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
+.birth-item .value { font-size: 16px; color: var(--gold-bright); font-weight: 300; }
+.birth-item .sub { font-size: 12px; color: var(--text-dim); }
+
+/* ── Planets table ── */
+.planets-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.planets-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+.planets-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border)44;
+  vertical-align: middle;
+}
+.planets-table tr:last-child td { border-bottom: none; }
+.planets-table tr:hover td { background: var(--surface3); }
+.planet-name { font-weight: 500; color: var(--gold-bright); }
+.house-badge {
+  display: inline-block;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.h-trikona { border-color: var(--gold-dim); color: var(--gold); }
+.h-kendra { border-color: var(--teal)88; color: var(--teal); }
+.h-dusthana { border-color: var(--red)88; color: var(--red)cc; }
+
+/* ── Dasha cards ── */
+.dasha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dasha-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+.dasha-card.active { border-color: var(--gold-dim); }
+.dasha-card .dc-label { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.dasha-card .dc-planet { font-size: 22px; font-weight: 300; color: var(--gold-bright); }
+.dasha-card .dc-dates { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.dasha-card .dc-badge {
+  display: inline-block;
+  background: var(--gold-dim)22;
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  margin-bottom: 6px;
+}
+
+/* ── Upcoming antar table ── */
+.antar-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+.antar-table td { padding: 7px 10px; border-bottom: 1px solid var(--border)44; }
+.antar-table tr:last-child td { border-bottom: none; }
+.antar-planet { color: var(--gold); font-weight: 500; }
+.antar-dates { color: var(--text-dim); font-size: 12px; }
+
+/* ── Panchang ── */
+.panchang-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.panch-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+.panch-item .p-label { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.panch-item .p-value { font-size: 15px; color: var(--text); }
+.panch-item .p-sub { font-size: 11px; color: var(--text-dim); }
+
+/* ── Transits ── */
+.transit-list { display: flex; flex-direction: column; gap: 8px; }
+.transit-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 16px;
+}
+.transit-date { font-size: 12px; color: var(--text-dim); min-width: 90px; }
+.transit-planet { font-weight: 500; color: var(--gold); min-width: 70px; }
+.transit-arrow { color: var(--text-dim); }
+.transit-rashi { color: var(--text); }
+
+/* ── Reading cards ── */
+.reading-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px 20px;
+  margin-bottom: 16px;
+}
+.rc-icon {
+  font-size: 20px;
+  color: var(--gold-dim);
+  margin-bottom: 4px;
+}
+.rc-title {
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.rc-theme {
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.rc-halves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.rc-half {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.rc-up  { border-top: 2px solid var(--gold-dim); }
+.rc-down { border-top: 2px solid #7a3333; }
+.rc-half-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.rc-up  .rc-half-label { color: var(--gold); }
+.rc-down .rc-half-label { color: #c06060; }
+.rc-half-body { color: var(--text); line-height: 1.7; font-size: 13.5px; }
+.rc-half-body p { margin-bottom: 8px; }
+.rc-half-body ul { padding-left: 16px; margin: 0; }
+.rc-half-body li { margin-bottom: 8px; }
+.rc-half-body strong { color: var(--gold-bright); }
+.rc-up  .rc-half-body strong { color: var(--gold-bright); }
+.rc-down .rc-half-body strong { color: #e08888; }
+
+@media (max-width: 600px) {
+  .rc-halves { grid-template-columns: 1fr; }
+}
+
+/* ── Error ── */
+.error-box {
+  background: var(--error-bg);
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  color: var(--error-text);
+  font-size: 13px;
+  white-space: pre-wrap;
+  display: none;
+}
+.error-box.visible { display: block; }
+
+/* ── Responsive ── */
+/* ── Share ── */
+.btn-share {
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  border-radius: 7px;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  padding: 8px 18px;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-share:hover { background: var(--gold-dim); color: #0a0a0a; }
+.btn-share:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.share-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: #00000088;
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.share-overlay.visible { display: flex; }
+.share-modal {
+  background: var(--surface);
+  border: 1px solid var(--gold-dim);
+  border-radius: 12px;
+  padding: 28px 32px;
+  width: 90%; max-width: 460px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.share-modal-title {
+  font-size: 13px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold);
+}
+.share-modal-sub { font-size: 13px; color: var(--text-dim); }
+.share-url-row { display: flex; gap: 8px; }
+.share-url-input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 12px;
+  padding: 9px 12px;
+  outline: none;
+  min-width: 0;
+}
+.btn-copy {
+  background: var(--surface3);
+  border: 1px solid var(--gold-dim);
+  border-radius: 6px;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 9px 16px;
+  text-transform: uppercase;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.btn-copy:hover, .btn-copy.copied { background: var(--gold-dim); color: #0a0a0a; }
+.share-close {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+}
+.share-close:hover { color: var(--text); }
+
+/* ── Chat / Follow-up ── */
+.chat-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.chat-messages {
+  min-height: 120px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-behavior: smooth;
+}
+.chat-hint {
+  color: var(--text-dim);
+  font-size: 13px;
+  text-align: center;
+  padding: 20px 0;
+  font-style: italic;
+}
+.chat-bubble {
+  max-width: 88%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.chat-bubble.user {
+  align-self: flex-end;
+  background: var(--surface3);
+  border: 1px solid var(--gold-dim);
+  color: var(--text);
+}
+.chat-bubble.assistant {
+  align-self: flex-start;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.chat-bubble.assistant p { margin-bottom: 8px; }
+.chat-bubble.assistant p:last-child { margin-bottom: 0; }
+.chat-bubble.assistant ul { padding-left: 18px; margin: 6px 0; }
+.chat-bubble.assistant li { margin-bottom: 4px; }
+.chat-bubble.assistant strong { color: var(--gold-bright); }
+.chat-bubble.loading { opacity: 0.5; font-style: italic; }
+.chat-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  color: var(--text-dim);
+}
+.chat-label.user  { text-align: right; color: var(--gold-dim); }
+.chat-label.asst  { color: var(--purple); }
+.chat-row { display: flex; flex-direction: column; }
+.chat-row.user { align-items: flex-end; }
+.chat-row.asst { align-items: flex-start; }
+.chat-input-area {
+  border-top: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex;
+  gap: 10px;
+  background: var(--surface2);
+}
+#chat-input {
+  flex: 1;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#chat-input:focus { border-color: var(--gold-dim); }
+#chat-input::placeholder { color: var(--text-dim); }
+.btn-ask {
+  background: var(--surface3);
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+.btn-ask:hover { background: var(--gold-dim); color: #0a0a0a; }
+.btn-ask:disabled { opacity: 0.4; cursor: not-allowed; }
+
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .dasha-grid { grid-template-columns: 1fr; }
+  .panchang-grid { grid-template-columns: 1fr 1fr; }
+  .rc-halves { grid-template-columns: 1fr; }
+  header h1 { font-size: 28px; }
+  .card { padding: 20px; }
+  .reading-section { padding: 20px; }
+  .chat-bubble { max-width: 96%; }
+}
+
+/* ── Guidance card ── */
+.rc-steps { color: var(--text); line-height: 1.75; font-size: 13.5px; }
+.rc-steps p { margin-bottom: 8px; }
+.rc-steps ul { padding-left: 18px; margin: 0; }
+.rc-steps li { margin-bottom: 10px; }
+.rc-steps strong { color: var(--gold-bright); }
+
+/* ── Top-right control strip ── */
+.top-controls {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Theme dot picker ── */
+.theme-switcher { display: flex; align-items: center; gap: 6px; }
+.theme-dot {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.theme-dot:hover  { transform: scale(1.25); }
+.theme-dot.active { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--gold-dim); }
+
+.theme-dot[data-theme="dark"]      { background: #e8b84b; }
+.theme-dot[data-theme="parchment"] { background: #b08c40; }
+.theme-dot[data-theme="saffron"]   { background: #f09020; }
+.theme-dot[data-theme="twilight"]  { background: #b090f0; }
+
+/* ── Language toggle ── */
+.lang-toggle {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--gold-dim);
+  border-radius: 20px;
+  padding: 5px 14px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--gold);
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+.lang-toggle:hover { background: var(--gold-dim); color: var(--bg); }
+.lang-toggle.translating { opacity: 0.55; cursor: wait; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">✦ Jyotish ✦</div>
+    <h1>Vedic Astrology</h1>
+    <p>Parashari system · Lahiri ayanamsa · Vimshottari Dasha · NASA JPL ephemeris</p>
+  </header>
+
+  <div class="divider"></div>
+
+  <!-- Input Form -->
+  <div class="card" id="form-card">
+    <div class="card-title">Birth Details</div>
+    <form id="astro-form">
+      <div class="form-grid">
+
+        <div class="form-group full">
+          <label for="name">Name</label>
+          <input type="text" id="name" placeholder="Your name" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label for="dob">Date of Birth</label>
+          <input type="date" id="dob" required>
+        </div>
+
+        <div class="form-group">
+          <label for="tob">Time of Birth (IST)</label>
+          <input type="time" id="tob" required>
+        </div>
+
+        <div class="form-group full">
+          <label for="city">Birth City</label>
+          <select id="city">
+            {% for c in cities %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+            <option value="custom">Other (enter coordinates)</option>
+          </select>
+        </div>
+
+        <div id="custom-coords">
+          <input type="number" id="lat" placeholder="Latitude (e.g. 12.9716)" step="0.0001">
+          <input type="number" id="lon" placeholder="Longitude (e.g. 77.5946)" step="0.0001">
+        </div>
+
+      </div>
+      <button type="submit" class="btn" id="submit-btn">
+        <span>Generate Reading</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="error-box"></div>
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">Computing your chart…</div>
+    <div class="loading-steps" id="loading-step">Calculating planetary positions with Swiss Ephemeris</div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+
+    <!-- Birth summary -->
+    <div class="section-header">
+      <div class="dot"></div><h2>Birth Chart</h2><div class="line"></div>
+    </div>
+    <div class="birth-summary" id="birth-summary"></div>
+
+    <!-- Planet table -->
+    <div class="card" style="margin-top:16px; overflow-x:auto;">
+      <table class="planets-table" id="planet-table">
+        <thead>
+          <tr>
+            <th>Planet</th><th>Rashi</th><th>Degree</th><th>House</th>
+            <th>Nakshatra</th><th>Lord</th><th>Pada</th>
+          </tr>
+        </thead>
+        <tbody id="planet-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Dasha -->
+    <div class="section-header">
+      <div class="dot"></div><h2>Vimshottari Dasha</h2><div class="line"></div>
+    </div>
+    <div class="dasha-grid" id="dasha-grid"></div>
+
+    <div class="card" style="margin-top:12px;">
+      <div class="card-title">Upcoming Antardashas</div>
+      <table class="antar-table" id="antar-table"><tbody></tbody></table>
+    </div>
+
+    <!-- Panchang -->
+    <div class="section-header">
+      <div class="dot"></div><h2>Today's Panchang</h2><div class="line"></div>
+    </div>
+    <div class="panchang-grid" id="panchang-grid"></div>
+
+    <!-- Transits -->
+    <div class="section-header">
+      <div class="dot"></div><h2>Upcoming Planetary Ingresses</h2><div class="line"></div>
+    </div>
+    <div class="transit-list" id="transit-list"></div>
+
+    <!-- Reading -->
+    <div class="section-header">
+      <div class="dot"></div><h2>Your Reading</h2><div class="line"></div>
+    </div>
+
+    <div class="reading-card" id="reading-health">
+      <div class="rc-icon">♡</div>
+      <div class="rc-title" data-en="Health" data-mr="आरोग्य">Health</div>
+      <div class="rc-theme" id="theme-health"></div>
+      <div class="rc-halves">
+        <div class="rc-half rc-up">
+          <div class="rc-half-label" data-en="Upsides" data-mr="सकारात्मक पैलू">Upsides</div>
+          <div class="rc-half-body" id="up-health"></div>
+        </div>
+        <div class="rc-half rc-down">
+          <div class="rc-half-label" data-en="Downsides" data-mr="आव्हाने">Downsides</div>
+          <div class="rc-half-body" id="down-health"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reading-card" id="reading-career">
+      <div class="rc-icon">✦</div>
+      <div class="rc-title" data-en="Career" data-mr="करिअर">Career</div>
+      <div class="rc-theme" id="theme-career"></div>
+      <div class="rc-halves">
+        <div class="rc-half rc-up">
+          <div class="rc-half-label" data-en="Upsides" data-mr="सकारात्मक पैलू">Upsides</div>
+          <div class="rc-half-body" id="up-career"></div>
+        </div>
+        <div class="rc-half rc-down">
+          <div class="rc-half-label" data-en="Downsides" data-mr="आव्हाने">Downsides</div>
+          <div class="rc-half-body" id="down-career"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reading-card" id="reading-relations">
+      <div class="rc-icon">⊕</div>
+      <div class="rc-title" data-en="Personal Relations" data-mr="वैयक्तिक संबंध">Personal Relations</div>
+      <div class="rc-theme" id="theme-relations"></div>
+      <div class="rc-halves">
+        <div class="rc-half rc-up">
+          <div class="rc-half-label" data-en="Upsides" data-mr="सकारात्मक पैलू">Upsides</div>
+          <div class="rc-half-body" id="up-relations"></div>
+        </div>
+        <div class="rc-half rc-down">
+          <div class="rc-half-label" data-en="Downsides" data-mr="आव्हाने">Downsides</div>
+          <div class="rc-half-body" id="down-relations"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reading-card" id="reading-guidance">
+      <div class="rc-icon">☽</div>
+      <div class="rc-title" data-en="Guidance" data-mr="मार्गदर्शन">Guidance</div>
+      <div class="rc-theme" id="theme-guidance"></div>
+      <div class="rc-steps" id="guidance-steps"></div>
+    </div>
+
+  </div><!-- /results -->
+
+  <!-- Share bar -->
+  <div id="share-bar" style="display:none; margin: 4px 0 20px; text-align:right;">
+    <button class="btn-share" id="share-btn">Share Reading</button>
+  </div>
+
+  <!-- Share modal -->
+  <div class="share-overlay" id="share-overlay">
+    <div class="share-modal">
+      <div class="share-modal-title">Share this Reading</div>
+      <div class="share-modal-sub" id="share-status">Generating link…</div>
+      <div class="share-url-row" id="share-url-row" style="display:none;">
+        <input class="share-url-input" id="share-url-input" readonly>
+        <button class="btn-copy" id="copy-btn">Copy</button>
+      </div>
+      <button class="share-close" id="share-close">✕ Close</button>
+    </div>
+  </div>
+
+  <!-- Follow-up chat -->
+  <div id="followup-section" style="display:none; margin-top:8px;">
+    <div class="section-header">
+      <div class="dot"></div><h2>Ask a Follow-up</h2><div class="line"></div>
+    </div>
+    <div class="chat-wrapper">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-hint" id="chat-hint">Your chart is loaded — ask anything about your reading, specific time periods, or life areas.</div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="e.g. Will 2027 be good for a career change?" autocomplete="off">
+        <button class="btn-ask" id="chat-send">Ask</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- Fixed top-right: theme picker + language toggle -->
+<div class="top-controls">
+  <div class="theme-switcher" id="theme-switcher">
+    <button class="theme-dot active" data-theme="dark"      title="Midnight"></button>
+    <button class="theme-dot"        data-theme="parchment" title="Parchment"></button>
+    <button class="theme-dot"        data-theme="saffron"   title="Saffron"></button>
+    <button class="theme-dot"        data-theme="twilight"  title="Twilight"></button>
+  </div>
+  <button class="lang-toggle" id="lang-toggle">मराठी</button>
+</div>
+
+<script>
+const PLANET_ORDER = ["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu","Ketu"];
+const TRIKONA = [1,5,9];
+const KENDRA  = [1,4,7,10];
+const DUSTHANA = [6,8,12];
+
+function houseBadge(h) {
+  let cls = 'house-badge';
+  if (TRIKONA.includes(h)) cls += ' h-trikona';
+  else if (KENDRA.includes(h)) cls += ' h-kendra';
+  else if (DUSTHANA.includes(h)) cls += ' h-dusthana';
+  return `<span class="${cls}">H${h}</span>`;
+}
+
+function fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s + 'T00:00:00');
+  return d.toLocaleDateString('en-IN', {month:'short', year:'numeric'});
+}
+
+function renderChart(data) {
+  const { lagna, positions, houses, ayanamsa, dasha_info, panchang, transit_events } = data;
+
+  // Birth summary
+  const ci = document.getElementById('dob').value;
+  const city = document.getElementById('city').value;
+  document.getElementById('birth-summary').innerHTML = `
+    <div class="birth-item"><div class="label">Lagna</div><div class="value">${lagna.rashi}</div><div class="sub">${lagna.degree_in_rashi.toFixed(1)}° ${lagna.nakshatra}</div></div>
+    <div class="birth-item"><div class="label">Moon (Rashi)</div><div class="value">${positions.Moon.rashi}</div><div class="sub">${positions.Moon.nakshatra} ${positions.Moon.pada}</div></div>
+    <div class="birth-item"><div class="label">Ayanamsa</div><div class="value">${ayanamsa}°</div><div class="sub">Lahiri</div></div>
+    <div class="birth-item"><div class="label">Birth City</div><div class="value">${city !== 'custom' ? city : 'Custom'}</div><div class="sub">IST (UTC+5:30)</div></div>
+  `;
+
+  // Planet table
+  const tbody = document.getElementById('planet-tbody');
+  tbody.innerHTML = '';
+  PLANET_ORDER.forEach(p => {
+    if (!positions[p]) return;
+    const d = positions[p];
+    const h = houses[p] || '?';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="planet-name">${p}</td>
+      <td>${d.rashi}</td>
+      <td>${d.degree_in_rashi.toFixed(2)}°</td>
+      <td>${houseBadge(h)}</td>
+      <td>${d.nakshatra}</td>
+      <td>${d.nakshatra_lord}</td>
+      <td>${d.pada}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Dasha
+  const dm = dasha_info;
+  document.getElementById('dasha-grid').innerHTML = `
+    <div class="dasha-card active">
+      <div class="dc-badge">Active Mahadasha</div>
+      <div class="dc-planet">${dm.current_mahadasha?.planet || '—'}</div>
+      <div class="dc-dates">${fmtDate(dm.current_mahadasha?.start_date)} → ${fmtDate(dm.current_mahadasha?.end_date)}</div>
+    </div>
+    <div class="dasha-card active">
+      <div class="dc-badge">Active Antardasha</div>
+      <div class="dc-planet">${dm.current_antardasha?.planet || '—'}</div>
+      <div class="dc-dates">${fmtDate(dm.current_antardasha?.start_date)} → ${fmtDate(dm.current_antardasha?.end_date)}</div>
+    </div>
+    <div class="dasha-card">
+      <div class="dc-label">Next Mahadasha</div>
+      <div class="dc-planet">${dm.next_mahadasha?.planet || '—'}</div>
+      <div class="dc-dates">from ${fmtDate(dm.next_mahadasha?.start_date)}</div>
+    </div>
+    <div class="dasha-card">
+      <div class="dc-label">Next Antardasha</div>
+      <div class="dc-planet">${dm.next_antardasha?.planet || '—'}</div>
+      <div class="dc-dates">from ${fmtDate(dm.next_antardasha?.start_date)}</div>
+    </div>
+  `;
+
+  const atbody = document.querySelector('#antar-table tbody');
+  atbody.innerHTML = '';
+  (dm.upcoming_antardashas || []).forEach(a => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="antar-planet">${a.planet}</td><td class="antar-dates">${fmtDate(a.start_date)} → ${fmtDate(a.end_date)}</td>`;
+    atbody.appendChild(tr);
+  });
+
+  // Panchang
+  const p = panchang;
+  document.getElementById('panchang-grid').innerHTML = `
+    <div class="panch-item"><div class="p-label">Tithi</div><div class="p-value">${p.tithi}</div><div class="p-sub">${p.paksha}</div></div>
+    <div class="panch-item"><div class="p-label">Vara</div><div class="p-value">${p.vara}</div></div>
+    <div class="panch-item"><div class="p-label">Nakshatra</div><div class="p-value">${p.nakshatra}</div><div class="p-sub">lord: ${p.nakshatra_lord}</div></div>
+    <div class="panch-item"><div class="p-label">Yoga</div><div class="p-value">${p.yoga}</div></div>
+    <div class="panch-item"><div class="p-label">Karana</div><div class="p-value">${p.karana}</div></div>
+  `;
+
+  // Transits
+  const tl = document.getElementById('transit-list');
+  tl.innerHTML = '';
+  (transit_events || []).forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'transit-item';
+    div.innerHTML = `
+      <div class="transit-date">${e.date}</div>
+      <div class="transit-planet">${e.planet}</div>
+      <div class="transit-arrow">→</div>
+      <div class="transit-rashi">${e.to_rashi} <span style="color:var(--text-dim);font-size:12px">(from ${e.from_rashi})</span></div>
+    `;
+    tl.appendChild(div);
+  });
+}
+
+function splitUpsDowns(text) {
+  const UP_PAT   = /\*\*(?:Upsides?|सकारात्मक\s+पैलू)\*\*([\s\S]*?)(?=\*\*(?:Downsides?|Challenges?|आव्हाने)|$)/i;
+  const DOWN_PAT = /\*\*(?:Downsides?|Challenges?|आव्हाने)[^*]*\*\*([\s\S]*?)$/i;
+
+  const upMatch   = text.match(UP_PAT);
+  const downMatch = text.match(DOWN_PAT);
+  const themeEnd  = text.indexOf('**');
+  return {
+    theme:     themeEnd > 0 ? text.slice(0, themeEnd).trim() : '',
+    upsides:   upMatch   ? upMatch[1].trim()   : '',
+    downsides: downMatch ? downMatch[1].trim() : '',
+  };
+}
+
+function renderSection(sectionText, themeId, upId, downId) {
+  const { theme, upsides, downsides } = splitUpsDowns(sectionText);
+  document.getElementById(themeId).innerHTML  = marked.parse(theme);
+  document.getElementById(upId).innerHTML     = marked.parse(upsides);
+  document.getElementById(downId).innerHTML   = marked.parse(downsides);
+}
+
+function renderGuidance(text) {
+  const themeEnd = text.indexOf('**');
+  const theme    = themeEnd > 0 ? text.slice(0, themeEnd).trim() : '';
+  const body     = themeEnd > 0 ? text.slice(themeEnd).trim() : text.trim();
+  document.getElementById('theme-guidance').innerHTML  = marked.parse(theme);
+  document.getElementById('guidance-steps').innerHTML  = marked.parse(body);
+}
+
+function renderReading(reading) {
+  renderSection(reading.health,            'theme-health',    'up-health',    'down-health');
+  renderSection(reading.career,            'theme-career',    'up-career',    'down-career');
+  renderSection(reading.personal_relations,'theme-relations', 'up-relations', 'down-relations');
+  if (reading.guidance) renderGuidance(reading.guidance);
+}
+
+// City dropdown toggle
+document.getElementById('city').addEventListener('change', function() {
+  const cc = document.getElementById('custom-coords');
+  if (this.value === 'custom') cc.classList.add('visible');
+  else cc.classList.remove('visible');
+});
+
+// Loading text rotation
+const loadingMessages = [
+  'Calculating planetary positions with Swiss Ephemeris (NASA JPL DE431)…',
+  "Computing Vimshottari Dasha from Moon's nakshatra…",
+  'Deriving whole-sign houses from Lagna…',
+  'Scanning Jupiter and Saturn ingresses for next 24 months…',
+  'Consulting the jyotishi (Claude)…',
+];
+let loadIdx = 0, loadTimer;
+function startLoadingMessages() {
+  loadIdx = 0;
+  document.getElementById('loading-step').textContent = loadingMessages[0];
+  loadTimer = setInterval(() => {
+    loadIdx = (loadIdx + 1) % loadingMessages.length;
+    document.getElementById('loading-step').textContent = loadingMessages[loadIdx];
+  }, 2200);
+}
+function stopLoadingMessages() { clearInterval(loadTimer); }
+
+// Form submission
+document.getElementById('astro-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const name = document.getElementById('name').value;
+  const dob  = document.getElementById('dob').value;
+  const tob  = document.getElementById('tob').value;
+  const city = document.getElementById('city').value;
+  const lat  = document.getElementById('lat').value;
+  const lon  = document.getElementById('lon').value;
+
+  if (!dob || !tob) { alert('Please enter date and time of birth.'); return; }
+
+  // UI state
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('error-box').classList.remove('visible');
+  startLoadingMessages();
+
+  try {
+    const resp = await fetch('/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, dob, tob, city, lat, lon }),
+    });
+    const data = await resp.json();
+
+    if (data.error) {
+      document.getElementById('error-box').textContent = data.error + (data.trace ? '\n\n' + data.trace : '');
+      document.getElementById('error-box').classList.add('visible');
+    } else {
+      renderChart(data);
+      renderReading(data.reading);
+      document.getElementById('results').classList.add('visible');
+      initChat(data);
+      initShare(data, name, dob, tob, city);
+      initTranslate(data.reading);
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    }
+  } catch(err) {
+    document.getElementById('error-box').textContent = 'Network error: ' + err.message;
+    document.getElementById('error-box').classList.add('visible');
+  } finally {
+    stopLoadingMessages();
+    document.getElementById('loading').classList.remove('visible');
+    document.getElementById('submit-btn').disabled = false;
+  }
+});
+
+// ── Follow-up chat ──────────────────────────────────────────────
+let _chartContext = '';
+let _readingContext = '';
+let _chatHistory = [];   // [{role, content}, ...]
+let _chatMsgId = 0;
+
+function initChat(data) {
+  // Build compact chart context string to send with every follow-up
+  const p = data.positions, h = data.houses, di = data.dasha_info;
+  const cm = di.current_mahadasha, ca = di.current_antardasha;
+  const planets = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
+  let ctx = `Lagna: ${data.lagna.rashi} ${data.lagna.degree_in_rashi.toFixed(1)}° (${data.lagna.nakshatra})\n`;
+  ctx += `Current Mahadasha: ${cm?.planet} (${cm?.start_date} → ${cm?.end_date})\n`;
+  ctx += `Current Antardasha: ${ca?.planet} (${ca?.start_date} → ${ca?.end_date})\n`;
+  planets.forEach(pl => {
+    if (p[pl]) ctx += `${pl}: ${p[pl].rashi} H${h[pl]} ${p[pl].nakshatra} pada${p[pl].pada}\n`;
+  });
+  _chartContext = ctx;
+  _readingContext = [data.reading.health, data.reading.career, data.reading.personal_relations]
+    .filter(Boolean).join('\n\n---\n\n');
+  _chatHistory = [];
+  // Reset chat UI
+  document.getElementById('chat-messages').innerHTML =
+    '<div class="chat-hint" id="chat-hint">Your chart is loaded — ask anything about your reading, specific time periods, or life areas.</div>';
+  document.getElementById('followup-section').style.display = 'block';
+  document.getElementById('followup-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function appendBubble(role, html, loading) {
+  const hint = document.getElementById('chat-hint');
+  if (hint) hint.remove();
+
+  const id = 'msg-' + (++_chatMsgId);
+  const row = document.createElement('div');
+  row.className = `chat-row ${role === 'user' ? 'user' : 'asst'}`;
+  row.innerHTML = `
+    <div class="chat-label ${role === 'user' ? 'user' : 'asst'}">${role === 'user' ? 'You' : 'Jyotishi'}</div>
+    <div class="chat-bubble ${role} ${loading ? 'loading' : ''}" id="${id}">${html}</div>`;
+  const msgs = document.getElementById('chat-messages');
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+
+function updateBubble(id, html) {
+  const el = document.getElementById(id);
+  if (el) { el.innerHTML = html; el.classList.remove('loading'); }
+  const msgs = document.getElementById('chat-messages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendFollowup() {
+  const input = document.getElementById('chat-input');
+  const btn   = document.getElementById('chat-send');
+  const question = input.value.trim();
+  if (!question) return;
+
+  input.value = '';
+  input.disabled = true;
+  btn.disabled = true;
+
+  appendBubble('user', marked.parse(question));
+  _chatHistory.push({ role: 'user', content: question });
+
+  const loadId = appendBubble('assistant', '…', true);
+
+  try {
+    const resp = await fetch('/followup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question,
+        chart_context:   _chartContext,
+        reading_context: _readingContext,
+        history: _chatHistory.slice(0, -1),  // exclude current question
+      }),
+    });
+    const data = await resp.json();
+    const answer = data.answer || data.error || 'No response.';
+    updateBubble(loadId, marked.parse(answer));
+    _chatHistory.push({ role: 'assistant', content: answer });
+  } catch(err) {
+    updateBubble(loadId, 'Network error: ' + err.message);
+  } finally {
+    input.disabled = false;
+    btn.disabled = false;
+    input.focus();
+  }
+}
+
+document.getElementById('chat-send').addEventListener('click', sendFollowup);
+document.getElementById('chat-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendFollowup(); }
+});
+
+// ── Share ─────────────────────────────────────────────────────
+let _savePayload = null;
+
+function initShare(data, name, birthDate, birthTime, birthCity) {
+  _savePayload = { ...data, name, birth_date: birthDate, birth_time: birthTime, birth_city: birthCity };
+  document.getElementById('share-bar').style.display = 'block';
+}
+
+document.getElementById('share-btn').addEventListener('click', async function () {
+  const overlay = document.getElementById('share-overlay');
+  const status  = document.getElementById('share-status');
+  const urlRow  = document.getElementById('share-url-row');
+  const urlInput = document.getElementById('share-url-input');
+
+  overlay.classList.add('visible');
+  status.textContent  = 'Saving reading and generating link…';
+  urlRow.style.display = 'none';
+  document.getElementById('share-btn').disabled = true;
+
+  try {
+    const resp = await fetch('/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(_savePayload),
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    const url = data.short_url || data.url;
+    urlInput.value = url;
+
+    const isShortened = data.short_url && data.short_url !== data.url;
+    status.textContent = isShortened
+      ? 'Shortened with TinyURL — anyone with this link can view the reading.'
+      : 'Link ready. (TinyURL unavailable for local addresses — share over your network.)';
+    urlRow.style.display = 'flex';
+  } catch (err) {
+    status.textContent = 'Error: ' + err.message;
+  } finally {
+    document.getElementById('share-btn').disabled = false;
+  }
+});
+
+document.getElementById('copy-btn').addEventListener('click', function () {
+  const input = document.getElementById('share-url-input');
+  navigator.clipboard.writeText(input.value).then(() => {
+    this.textContent = 'Copied!';
+    this.classList.add('copied');
+    setTimeout(() => { this.textContent = 'Copy'; this.classList.remove('copied'); }, 2000);
+  });
+});
+
+document.getElementById('share-close').addEventListener('click', function () {
+  document.getElementById('share-overlay').classList.remove('visible');
+});
+document.getElementById('share-overlay').addEventListener('click', function (e) {
+  if (e.target === this) this.classList.remove('visible');
+});
+
+// ── Theme switcher ────────────────────────────────────────────
+const THEMES = ['dark', 'parchment', 'saffron', 'twilight'];
+
+function setTheme(name) {
+  if (!THEMES.includes(name)) name = 'dark';
+  document.documentElement.setAttribute('data-theme', name);
+  document.querySelectorAll('.theme-dot').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === name);
+  });
+  try { localStorage.setItem('jyotish-theme', name); } catch(_) {}
+}
+
+// Apply saved theme immediately
+(function () {
+  let saved = 'dark';
+  try { saved = localStorage.getItem('jyotish-theme') || 'dark'; } catch(_) {}
+  setTheme(saved);
+})();
+
+document.getElementById('theme-switcher').addEventListener('click', function (e) {
+  const dot = e.target.closest('.theme-dot');
+  if (dot) setTheme(dot.dataset.theme);
+});
+
+// ── Language toggle (Marathi) ──────────────────────────────────
+let _originalReading = null;
+let _marathiReading  = null;
+let _isMarathi = false;
+
+function initTranslate(reading) {
+  _originalReading = reading;
+  _marathiReading  = null;
+  _isMarathi = false;
+  const btn = document.getElementById('lang-toggle');
+  btn.textContent = 'मराठी';
+  btn.style.display = 'block';
+}
+
+function applyLabels(isMarathi) {
+  document.querySelectorAll('[data-en]').forEach(el => {
+    el.textContent = isMarathi ? el.dataset.mr : el.dataset.en;
+  });
+}
+
+function applyReading(reading) {
+  renderSection(reading.health,             'theme-health',    'up-health',    'down-health');
+  renderSection(reading.career,             'theme-career',    'up-career',    'down-career');
+  renderSection(reading.personal_relations, 'theme-relations', 'up-relations', 'down-relations');
+  if (reading.guidance) renderGuidance(reading.guidance);
+  applyLabels(_isMarathi);
+}
+
+document.getElementById('lang-toggle').addEventListener('click', async function () {
+  if (this.classList.contains('translating')) return;
+
+  if (_isMarathi) {
+    _isMarathi = false;
+    this.textContent = 'मराठी';
+    applyReading(_originalReading);
+    return;
+  }
+
+  if (_marathiReading) {
+    _isMarathi = true;
+    this.textContent = 'English';
+    applyReading(_marathiReading);
+    return;
+  }
+
+  // First press — call the API
+  this.classList.add('translating');
+  this.textContent = 'Translating…';
+  try {
+    const resp = await fetch('/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(_originalReading),
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    _marathiReading = data;
+    _isMarathi = true;
+    this.textContent = 'English';
+    applyReading(_marathiReading);
+  } catch (err) {
+    this.textContent = 'मराठी';
+    alert('Translation failed: ' + err.message);
+  } finally {
+    this.classList.remove('translating');
+  }
+});
+</script>
+</body>
+</html>

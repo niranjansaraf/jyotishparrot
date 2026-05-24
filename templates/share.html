@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jyotish Reading — {{ data.name }}</title>
+<script src="/static/marked.min.js"></script>
+<style>
+:root {
+  --bg: #07070f; --surface: #0f0f1e; --surface2: #16162a; --surface3: #1e1e35;
+  --gold: #c8973a; --gold-bright: #e8b84b; --gold-dim: #7a5c22;
+  --text: #dcdcee; --text-dim: #8888aa; --purple: #6b4fbd;
+  --border: #2a2a45; --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; min-height: 100vh; }
+.container { max-width: 860px; margin: 0 auto; padding: 32px 20px 60px; }
+
+/* Header */
+.share-header { text-align: center; padding: 36px 0 28px; }
+.share-logo { font-size: 12px; letter-spacing: 5px; color: var(--gold-dim); margin-bottom: 8px; }
+.share-title { font-size: 32px; font-weight: 300; color: var(--gold-bright); letter-spacing: 2px; }
+.share-subtitle { color: var(--text-dim); font-size: 13px; margin-top: 6px; }
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); margin: 0 0 28px; }
+
+/* Native info bar */
+.native-bar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 24px;
+  display: flex; flex-wrap: wrap; gap: 24px;
+  margin-bottom: 28px;
+}
+.native-item .label { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3px; }
+.native-item .val   { font-size: 16px; color: var(--gold-bright); font-weight: 300; }
+.native-item .sub   { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+
+/* Section header */
+.sec-header { display: flex; align-items: center; gap: 10px; margin: 28px 0 14px; }
+.sec-header .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+.sec-header h2 { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-dim); font-weight: 400; }
+.sec-header .line { flex: 1; height: 1px; background: var(--border); }
+
+/* Chart table */
+.chart-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.chart-table th { text-align: left; padding: 7px 10px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); border-bottom: 1px solid var(--border); }
+.chart-table td { padding: 8px 10px; border-bottom: 1px solid #2a2a4530; }
+.chart-table tr:last-child td { border-bottom: none; }
+.p-name { color: var(--gold-bright); font-weight: 500; }
+.h-badge { display: inline-block; background: var(--surface3); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 11px; color: var(--text-dim); }
+.h-tri { border-color: var(--gold-dim); color: var(--gold); }
+.h-ken { border-color: #2d8c8c88; color: #2d8c8c; }
+.h-dus { border-color: #c4444488; color: #c06060; }
+
+/* Dasha chips */
+.dasha-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.dasha-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; }
+.dasha-chip.active { border-color: var(--gold-dim); }
+.dasha-chip .dc-lbl { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.dasha-chip .dc-planet { font-size: 20px; font-weight: 300; color: var(--gold-bright); }
+.dasha-chip .dc-dates  { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+/* Reading cards */
+.reading-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 26px 18px; margin-bottom: 14px; }
+.rc-icon { font-size: 18px; color: var(--gold-dim); margin-bottom: 3px; }
+.rc-title { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 8px; }
+.rc-theme { color: var(--text-dim); font-size: 14px; line-height: 1.6; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.rc-halves { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rc-half { background: var(--surface2); border-radius: 8px; padding: 12px 14px; }
+.rc-up   { border-top: 2px solid var(--gold-dim); }
+.rc-down { border-top: 2px solid #7a3333; }
+.rc-half-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+.rc-up   .rc-half-label { color: var(--gold); }
+.rc-down .rc-half-label { color: #c06060; }
+.rc-half-body { color: var(--text); line-height: 1.7; font-size: 13.5px; }
+.rc-half-body p { margin-bottom: 8px; }
+.rc-half-body ul { padding-left: 16px; margin: 0; }
+.rc-half-body li { margin-bottom: 6px; }
+.rc-half-body strong { color: var(--gold-bright); }
+.rc-down .rc-half-body strong { color: #e08888; }
+
+/* Footer */
+.share-footer { text-align: center; margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 12px; letter-spacing: 1px; }
+.share-footer a { color: var(--gold-dim); text-decoration: none; }
+
+@media (max-width: 580px) {
+  .rc-halves { grid-template-columns: 1fr; }
+  .dasha-row { grid-template-columns: 1fr; }
+  .native-bar { gap: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="share-header">
+    <div class="share-logo">✦ JYOTISH ✦</div>
+    <div class="share-title">{{ data.name }}'s Reading</div>
+    <div class="share-subtitle">Vedic Astrology · Parashari System · Lahiri Ayanamsa</div>
+  </div>
+  <div class="divider"></div>
+
+  <!-- Native info -->
+  <div class="native-bar">
+    <div class="native-item">
+      <div class="label">Born</div>
+      <div class="val">{{ data.birth_date }}</div>
+      <div class="sub">{{ data.birth_time }} IST · {{ data.birth_city }}</div>
+    </div>
+    <div class="native-item">
+      <div class="label">Lagna</div>
+      <div class="val">{{ data.lagna.rashi }}</div>
+      <div class="sub">{{ "%.1f"|format(data.lagna.degree_in_rashi) }}° · {{ data.lagna.nakshatra }}</div>
+    </div>
+    <div class="native-item">
+      <div class="label">Moon</div>
+      <div class="val">{{ data.positions.Moon.rashi }}</div>
+      <div class="sub">{{ data.positions.Moon.nakshatra }} pada {{ data.positions.Moon.pada }}</div>
+    </div>
+    <div class="native-item">
+      <div class="label">Ayanamsa</div>
+      <div class="val">{{ data.ayanamsa }}°</div>
+      <div class="sub">Lahiri</div>
+    </div>
+  </div>
+
+  <!-- Birth chart table -->
+  <div class="sec-header"><div class="dot"></div><h2>Natal Chart</h2><div class="line"></div></div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto;">
+    <table class="chart-table">
+      <thead><tr><th>Planet</th><th>Rashi</th><th>Degree</th><th>House</th><th>Nakshatra</th><th>Lord</th><th>Pada</th></tr></thead>
+      <tbody>
+        {% set planets = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'] %}
+        {% for p in planets %}
+        {% if p in data.positions %}
+        {% set d = data.positions[p] %}
+        {% set h = data.houses[p] %}
+        <tr>
+          <td class="p-name">{{ p }}</td>
+          <td>{{ d.rashi }}</td>
+          <td>{{ "%.2f"|format(d.degree_in_rashi) }}°</td>
+          <td>
+            {% if h in [1,5,9] %}<span class="h-badge h-tri">H{{ h }}</span>
+            {% elif h in [1,4,7,10] %}<span class="h-badge h-ken">H{{ h }}</span>
+            {% elif h in [6,8,12] %}<span class="h-badge h-dus">H{{ h }}</span>
+            {% else %}<span class="h-badge">H{{ h }}</span>{% endif %}
+          </td>
+          <td>{{ d.nakshatra }}</td>
+          <td>{{ d.nakshatra_lord }}</td>
+          <td>{{ d.pada }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Dasha -->
+  <div class="sec-header"><div class="dot"></div><h2>Vimshottari Dasha</h2><div class="line"></div></div>
+  <div class="dasha-row">
+    {% set cm = data.dasha_info.current_mahadasha %}
+    {% set ca = data.dasha_info.current_antardasha %}
+    <div class="dasha-chip active">
+      <div class="dc-lbl">Active Mahadasha</div>
+      <div class="dc-planet">{{ cm.planet if cm else '—' }}</div>
+      <div class="dc-dates">{{ cm.start_date }} → {{ cm.end_date }}</div>
+    </div>
+    <div class="dasha-chip active">
+      <div class="dc-lbl">Active Antardasha</div>
+      <div class="dc-planet">{{ ca.planet if ca else '—' }}</div>
+      <div class="dc-dates">{{ ca.start_date }} → {{ ca.end_date }}</div>
+    </div>
+  </div>
+
+  <!-- Reading -->
+  <div class="sec-header"><div class="dot"></div><h2>Reading</h2><div class="line"></div></div>
+
+  <div class="reading-card">
+    <div class="rc-icon">♡</div><div class="rc-title">Health</div>
+    <div class="rc-theme" id="theme-health"></div>
+    <div class="rc-halves">
+      <div class="rc-half rc-up"><div class="rc-half-label">Upsides</div><div class="rc-half-body" id="up-health"></div></div>
+      <div class="rc-half rc-down"><div class="rc-half-label">Downsides</div><div class="rc-half-body" id="down-health"></div></div>
+    </div>
+  </div>
+
+  <div class="reading-card">
+    <div class="rc-icon">✦</div><div class="rc-title">Career</div>
+    <div class="rc-theme" id="theme-career"></div>
+    <div class="rc-halves">
+      <div class="rc-half rc-up"><div class="rc-half-label">Upsides</div><div class="rc-half-body" id="up-career"></div></div>
+      <div class="rc-half rc-down"><div class="rc-half-label">Downsides</div><div class="rc-half-body" id="down-career"></div></div>
+    </div>
+  </div>
+
+  <div class="reading-card">
+    <div class="rc-icon">⊕</div><div class="rc-title">Personal Relations</div>
+    <div class="rc-theme" id="theme-relations"></div>
+    <div class="rc-halves">
+      <div class="rc-half rc-up"><div class="rc-half-label">Upsides</div><div class="rc-half-body" id="up-relations"></div></div>
+      <div class="rc-half rc-down"><div class="rc-half-label">Downsides</div><div class="rc-half-body" id="down-relations"></div></div>
+    </div>
+  </div>
+
+  <div class="reading-card">
+    <div class="rc-icon">☽</div><div class="rc-title">Guidance</div>
+    <div class="rc-theme" id="theme-guidance"></div>
+    <div class="rc-half-body" id="guidance-steps" style="padding-top:4px;"></div>
+  </div>
+
+  <div class="share-footer">
+    ✦ &nbsp; Generated by <a href="/">Jyotish</a> &nbsp;·&nbsp; Parashari Vedic Astrology &nbsp;·&nbsp; NASA JPL DE431 Ephemeris &nbsp; ✦
+  </div>
+
+</div>
+
+<script>
+const reading = {{ data.reading | tojson }};
+
+function splitSection(text) {
+  const upMatch   = text.match(/\*\*Upsides?\*\*([\s\S]*?)(?=\*\*Downsides?|\*\*Challenges?|$)/i);
+  const downMatch = text.match(/\*\*(?:Downsides?|Challenges?)[^*]*\*\*([\s\S]*?)$/i);
+  const themeEnd  = text.indexOf('**');
+  return {
+    theme:     themeEnd > 0 ? text.slice(0, themeEnd).trim() : '',
+    upsides:   upMatch   ? upMatch[1].trim()   : '',
+    downsides: downMatch ? downMatch[1].trim() : '',
+  };
+}
+
+function renderSection(text, themeId, upId, downId) {
+  const { theme, upsides, downsides } = splitSection(text);
+  document.getElementById(themeId).innerHTML  = marked.parse(theme);
+  document.getElementById(upId).innerHTML     = marked.parse(upsides);
+  document.getElementById(downId).innerHTML   = marked.parse(downsides);
+}
+
+renderSection(reading.health,             'theme-health',    'up-health',    'down-health');
+renderSection(reading.career,             'theme-career',    'up-career',    'down-career');
+renderSection(reading.personal_relations, 'theme-relations', 'up-relations', 'down-relations');
+
+if (reading.guidance) {
+  const text = reading.guidance;
+  const themeEnd = text.indexOf('**');
+  const theme = themeEnd > 0 ? text.slice(0, themeEnd).trim() : '';
+  const body  = themeEnd > 0 ? text.slice(themeEnd).trim() : text.trim();
+  document.getElementById('theme-guidance').innerHTML   = marked.parse(theme);
+  document.getElementById('guidance-steps').innerHTML  = marked.parse(body);
+}
+</script>
+</body>
+</html>
