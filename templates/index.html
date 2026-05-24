@@ -1317,6 +1317,20 @@ let _originalReading = null;
 let _marathiReading  = null;
 let _isMarathi = false;
 
+async function _prefetchMarathi(reading) {
+  try {
+    const resp = await fetch('/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reading),
+    });
+    const data = await resp.json();
+    if (!data.error) _marathiReading = data;
+  } catch (_) {
+    // silent — button fallback handles it if user clicks before this finishes
+  }
+}
+
 function initTranslate(reading) {
   _originalReading = reading;
   _marathiReading  = null;
@@ -1324,6 +1338,7 @@ function initTranslate(reading) {
   const btn = document.getElementById('lang-toggle');
   btn.textContent = 'मराठी';
   btn.style.display = 'block';
+  _prefetchMarathi(reading);   // start in background, don't await
 }
 
 function applyLabels(isMarathi) {
