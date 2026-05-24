@@ -6,7 +6,7 @@ from google import genai
 from google.genai import types
 from datetime import date
 
-_SYSTEM = """You are a classical Jyotish (Vedic astrology) consultant with mastery of the Parashari system.
+_SYSTEM = """You are a warm, experienced Jyotish (Vedic astrology) consultant writing for people who have little or no astrology background.
 
 Your interpretations draw on:
 - Vimshottari Dasha system for timing events
@@ -17,9 +17,14 @@ Your interpretations draw on:
 - Gochar (transits) of Jupiter, Saturn, Rahu/Ketu over natal Moon and Lagna
 - Nakshatra qualities and their influence on planetary expression
 
-Tone: grounded, specific, compassionate. Avoid fatalistic language. Give approximate dates
-(month/year ranges) for timing. Never use hollow phrases like "the stars suggest" — speak directly
-from the chart's evidence. Mention both challenges and opportunities in each period."""
+LANGUAGE RULES — follow these strictly:
+- Write in plain, everyday English that anyone can understand.
+- Avoid raw Jyotish jargon. If you must mention a technical term (e.g. "Mahadasha", "10th house lord",
+  "Rahu"), immediately follow it with a simple one-phrase explanation in parentheses.
+  Example: "Saturn Mahadasha (a 19-year cycle ruled by Saturn, the planet of discipline and hard work)"
+- Never use phrases like "the stars suggest", "cosmic energies", or "celestial bodies align".
+  Speak directly: "Saturn's influence over your career house means…"
+- Tone: warm, grounded, specific, compassionate. Not fatalistic. Not vague."""
 
 
 _FALLBACK_MODELS = [
@@ -132,35 +137,50 @@ Lahiri Ayanamsa: {ayanamsa}°
 == UPCOMING SLOW-PLANET INGRESSES (next 24 months) ==
 {transit_text}
 
-Provide a reading in exactly four sections: Health, Career, Personal Relations, and Guidance.
-Ground every point in the natal chart placements, active dasha/antardasha, and upcoming transits.
+Today's date is {today.strftime("%B %d, %Y")}.
+Six months from today is approximately {(today.replace(month=((today.month+5)%12)+1, year=today.year+(today.month+5)//12)).strftime("%B %Y")}.
+Twelve months from today is approximately {today.replace(year=today.year+1).strftime("%B %Y")}.
 
-For the first three sections (Health, Career, Personal Relations) use this exact structure:
+Provide a reading in exactly five sections: Summary, Health, Career, Personal Relations, and Guidance.
+Write in plain English — avoid unexplained astrology jargon. Every person reading this is a non-astrologer.
 
-One sentence on the overall theme for this life area in the current period.
+SECTION 1 — SUMMARY
+Two to three sentences giving a plain-English overview of where {name} stands right now.
+Name the active planetary period and explain in simple terms what it means for their life overall.
+End with the single most important thing to keep in mind over the next 12 months.
+
+SECTIONS 2–4 — Health, Career, Personal Relations
+For each section use this exact structure:
+
+One sentence on the overall theme for this life area right now.
 
 **Upsides**
-- [specific opportunity or strength] — [approximate timeframe, e.g. "mid-2026" or "now through Sep 2026"]
-- [specific opportunity or strength] — [approximate timeframe]
-- [specific opportunity or strength] — [approximate timeframe]
+- [opportunity] — now through [~6 months from today]
+- [opportunity] — [~6 months from today] through [~12 months from today]
+- [opportunity] — [~12 months from today] onwards
 
 **Downsides**
-- [specific challenge or caution] — [approximate timeframe]
-- [specific challenge or caution] — [approximate timeframe]
-- [specific challenge or caution] — [approximate timeframe]
+- [challenge] — now through [~6 months from today]
+- [challenge] — [~6 months from today] through [~12 months from today]
+- [challenge] — [~12 months from today] onwards
 
-For the Guidance section, synthesise the most important challenges from all three areas and give concrete steps the native should take to navigate this period well. Use this exact structure:
+STRICT CHRONOLOGICAL RULE: bullet 1 is always the earliest period, bullet 3 is always the furthest out.
+Every bullet must include its month/year timeframe so the reader knows exactly when it applies.
 
-One sentence naming the core challenge or opportunity in the current dasha/transit combination.
+SECTION 5 — GUIDANCE
+One sentence naming the core challenge or opportunity right now.
 
 **Steps to Navigate This Period**
-- [Concrete action] — [timeframe and why it is relevant to this chart]
-- [Concrete action] — [timeframe and why it is relevant to this chart]
-- [Concrete action] — [timeframe and why it is relevant to this chart]
-- [Concrete action] — [timeframe and why it is relevant to this chart]
-- [Concrete action] — [timeframe and why it is relevant to this chart]
+- [Immediate action, do this now] — why it matters for this chart
+- [Action for the next 3–6 months] — why it matters
+- [Action for 6–12 months from now] — why it matters
+- [Action for the year ahead and beyond] — why it matters
+- [One ongoing mindset or habit] — why it matters for this chart
 
-Now write all four sections using this exact format:
+Now write all five sections using this exact format:
+
+## Summary
+[2–3 sentences]
 
 ## Health
 [theme sentence]
@@ -211,7 +231,7 @@ Now write all four sections using this exact format:
 - ...
 - ...
 
-Be specific to this chart, not generic. Reference house lords, nakshatra qualities, and dasha combinations."""
+Be specific to this chart. Plain language throughout."""
 
     client = _get_client()
     preferred = os.getenv("GEMINI_MODEL")
@@ -259,6 +279,7 @@ Be specific to this chart, not generic. Reference house lords, nakshatra qualiti
         return after[:next_heading].strip() if next_heading != -1 else after.strip()
 
     return {
+        "summary": _extract_section(full_text, "Summary"),
         "health": _extract_section(full_text, "Health"),
         "career": _extract_section(full_text, "Career"),
         "personal_relations": _extract_section(full_text, "Personal Relations"),
@@ -278,14 +299,16 @@ def translate_reading(sections: dict) -> dict:
         "and rashi names (Ashwini, Rohini, Aries, Taurus, etc.).\n"
         "- Keep all dates and timeframes in their original form (e.g. 'mid-2026', 'June 2026').\n"
         "- Translate '**Upsides**' as '**सकारात्मक पैलू**', '**Downsides**' as '**आव्हाने**', "
-        "and '**Steps to Navigate This Period**' as '**या काळात मार्गक्रमण करण्याचे उपाय**'.\n"
+        "'**Steps to Navigate This Period**' as '**या काळात मार्गक्रमण करण्याचे उपाय**'.\n"
         "- Use natural, warm Marathi as a knowledgeable Jyotishi would speak to a client.\n\n"
         "Return ONLY the translated sections using exactly these markers (no extra text):\n\n"
+        "[SUMMARY]\n...translation...\n[/SUMMARY]\n\n"
         "[HEALTH]\n...translation...\n[/HEALTH]\n\n"
         "[CAREER]\n...translation...\n[/CAREER]\n\n"
         "[PERSONAL_RELATIONS]\n...translation...\n[/PERSONAL_RELATIONS]\n\n"
         "[GUIDANCE]\n...translation...\n[/GUIDANCE]\n\n"
         "=== SECTIONS TO TRANSLATE ===\n\n"
+        f"[SUMMARY]\n{sections.get('summary', '')}\n[/SUMMARY]\n\n"
         f"[HEALTH]\n{sections.get('health', '')}\n[/HEALTH]\n\n"
         f"[CAREER]\n{sections.get('career', '')}\n[/CAREER]\n\n"
         f"[PERSONAL_RELATIONS]\n{sections.get('personal_relations', '')}\n[/PERSONAL_RELATIONS]\n\n"
@@ -302,6 +325,7 @@ def translate_reading(sections: dict) -> dict:
         return full_text[start + len(f"[{tag}]"):end].strip()
 
     return {
+        "summary":           _extract("SUMMARY"),
         "health":            _extract("HEALTH"),
         "career":            _extract("CAREER"),
         "personal_relations": _extract("PERSONAL_RELATIONS"),

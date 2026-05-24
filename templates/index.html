@@ -605,6 +605,20 @@ select option { background: var(--surface2); }
   .chat-bubble { max-width: 96%; }
 }
 
+/* ── Summary card ── */
+.summary-card {
+  background: var(--surface);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius);
+  padding: 22px 28px;
+  margin-bottom: 16px;
+  line-height: 1.75;
+  font-size: 14.5px;
+  color: var(--text);
+}
+.summary-card p { margin-bottom: 10px; }
+.summary-card p:last-child { margin-bottom: 0; }
+
 /* ── Guidance card ── */
 .rc-steps { color: var(--text); line-height: 1.75; font-size: 13.5px; }
 .rc-steps p { margin-bottom: 8px; }
@@ -776,6 +790,8 @@ select option { background: var(--surface2); }
     <div class="section-header">
       <div class="dot"></div><h2>Your Reading</h2><div class="line"></div>
     </div>
+
+    <div class="summary-card" id="summary-card"></div>
 
     <div class="reading-card" id="reading-health">
       <div class="rc-icon">♡</div>
@@ -1014,6 +1030,11 @@ function renderSection(sectionText, themeId, upId, downId) {
   document.getElementById(downId).innerHTML   = marked.parse(downsides);
 }
 
+function renderSummary(text) {
+  const el = document.getElementById('summary-card');
+  if (el) el.innerHTML = marked.parse(text || '');
+}
+
 function renderGuidance(text) {
   const themeEnd = text.indexOf('**');
   const theme    = themeEnd > 0 ? text.slice(0, themeEnd).trim() : '';
@@ -1023,6 +1044,7 @@ function renderGuidance(text) {
 }
 
 function renderReading(reading) {
+  if (reading.summary) renderSummary(reading.summary);
   renderSection(reading.health,            'theme-health',    'up-health',    'down-health');
   renderSection(reading.career,            'theme-career',    'up-career',    'down-career');
   renderSection(reading.personal_relations,'theme-relations', 'up-relations', 'down-relations');
@@ -1303,6 +1325,7 @@ function applyLabels(isMarathi) {
 }
 
 function applyReading(reading) {
+  if (reading.summary) renderSummary(reading.summary);
   renderSection(reading.health,             'theme-health',    'up-health',    'down-health');
   renderSection(reading.career,             'theme-career',    'up-career',    'down-career');
   renderSection(reading.personal_relations, 'theme-relations', 'up-relations', 'down-relations');

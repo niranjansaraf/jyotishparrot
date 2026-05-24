@@ -176,6 +176,8 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <!-- Reading -->
   <div class="sec-header"><div class="dot"></div><h2>Reading</h2><div class="line"></div></div>
 
+  <div id="summary-card" style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:var(--radius);padding:22px 26px;margin-bottom:14px;font-size:14px;line-height:1.75;color:var(--text);"></div>
+
   <div class="reading-card">
     <div class="rc-icon">♡</div><div class="rc-title">Health</div>
     <div class="rc-theme" id="theme-health"></div>
@@ -236,6 +238,7 @@ function renderSection(text, themeId, upId, downId) {
   document.getElementById(downId).innerHTML   = marked.parse(downsides);
 }
 
+if (reading.summary) document.getElementById('summary-card').innerHTML = marked.parse(reading.summary);
 renderSection(reading.health,             'theme-health',    'up-health',    'down-health');
 renderSection(reading.career,             'theme-career',    'up-career',    'down-career');
 renderSection(reading.personal_relations, 'theme-relations', 'up-relations', 'down-relations');
