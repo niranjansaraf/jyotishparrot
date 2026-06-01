@@ -97,6 +97,11 @@ def generate():
         panchang = ast.get_panchang(today_jd)
         transit_events = ast.get_upcoming_transit_events(today_jd, months=24)
 
+        # Current positions of all planets TODAY mapped to natal houses
+        # This prevents the AI from guessing or inferring transit house numbers
+        today_positions = ast.get_planet_positions(today_jd)
+        today_houses    = ast.get_house_positions(lagna["rashi"], today_positions)
+
         # --- Claude reading ---
         if not os.getenv("GEMINI_API_KEY"):
             return jsonify({"error": "GEMINI_API_KEY not set. Add it to your .env file."}), 500
@@ -112,6 +117,8 @@ def generate():
             dasha_info=dasha_info,
             panchang=panchang,
             transit_events=transit_events,
+            today_positions=today_positions,
+            today_houses=today_houses,
             ayanamsa=ayanamsa,
             today=today,
         )
@@ -136,6 +143,8 @@ def generate():
             },
             "panchang": panchang,
             "transit_events": transit_events,
+            "today_positions": today_positions,
+            "today_houses": today_houses,
             "reading": reading,
         })
 

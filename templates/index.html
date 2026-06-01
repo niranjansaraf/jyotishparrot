@@ -1143,14 +1143,27 @@ let _chatMsgId = 0;
 function initChat(data) {
   // Build compact chart context string to send with every follow-up
   const p = data.positions, h = data.houses, di = data.dasha_info;
+  const tp = data.today_positions, th = data.today_houses;
   const cm = di.current_mahadasha, ca = di.current_antardasha;
   const planets = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
+
   let ctx = `Lagna: ${data.lagna.rashi} ${data.lagna.degree_in_rashi.toFixed(1)}° (${data.lagna.nakshatra})\n`;
   ctx += `Current Mahadasha: ${cm?.planet} (${cm?.start_date} → ${cm?.end_date})\n`;
-  ctx += `Current Antardasha: ${ca?.planet} (${ca?.start_date} → ${ca?.end_date})\n`;
+  ctx += `Current Antardasha: ${ca?.planet} (${ca?.start_date} → ${ca?.end_date})\n\n`;
+
+  ctx += `NATAL POSITIONS (birth chart — fixed):\n`;
   planets.forEach(pl => {
-    if (p[pl]) ctx += `${pl}: ${p[pl].rashi} H${h[pl]} ${p[pl].nakshatra} pada${p[pl].pada}\n`;
+    if (p[pl]) ctx += `  ${pl}: ${p[pl].rashi} House ${h[pl]} ${p[pl].nakshatra} pada${p[pl].pada}\n`;
   });
+
+  if (tp) {
+    ctx += `\nCURRENT TRANSIT POSITIONS (today — pre-calculated natal house numbers):\n`;
+    planets.forEach(pl => {
+      if (tp[pl]) ctx += `  ${pl}: ${tp[pl].rashi} House ${th[pl]} ${tp[pl].nakshatra}\n`;
+    });
+  }
+
+  ctx += `\n⚠ Use ONLY the house numbers listed above. Never calculate or infer house numbers.`;
   _chartContext = ctx;
   _readingContext = [data.reading.health, data.reading.career, data.reading.personal_relations]
     .filter(Boolean).join('\n\n---\n\n');

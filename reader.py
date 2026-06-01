@@ -61,6 +61,19 @@ def _fmt_planet_table(positions: dict, houses: dict, lagna: dict) -> str:
     return "\n".join(lines)
 
 
+def _fmt_today_positions(positions: dict, houses: dict) -> str:
+    """Format where every planet is TODAY and which natal house it occupies."""
+    lines = [f"{'Planet':<12} {'Current Rashi':<14} {'Natal House':>11}  {'Nakshatra'}"]
+    lines.append("-" * 60)
+    for p in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]:
+        if p not in positions:
+            continue
+        d = positions[p]
+        h = houses.get(p, "?")
+        lines.append(f"{p:<12} {d['rashi']:<14} {h:>11}  {d['nakshatra']}")
+    return "\n".join(lines)
+
+
 def _fmt_dasha(dasha_info: dict) -> str:
     if not dasha_info:
         return "Dasha data unavailable."
@@ -112,13 +125,16 @@ def generate_reading(
     dasha_info: dict,
     panchang: dict,
     transit_events: list,
+    today_positions: dict,
+    today_houses: dict,
     ayanamsa: float,
     today: date,
 ) -> dict:
-    chart_text = _fmt_planet_table(positions, houses, lagna)
-    dasha_text = _fmt_dasha(dasha_info)
-    panchang_text = _fmt_panchang(panchang, today)
-    transit_text = _fmt_transits(transit_events)
+    chart_text        = _fmt_planet_table(positions, houses, lagna)
+    dasha_text        = _fmt_dasha(dasha_info)
+    panchang_text     = _fmt_panchang(panchang, today)
+    transit_text      = _fmt_transits(transit_events)
+    today_planet_text = _fmt_today_positions(today_positions, today_houses)
 
     prompt = f"""Generate a Jyotish reading for {name}.
 
@@ -134,8 +150,15 @@ Lahiri Ayanamsa: {ayanamsa}°
 == TODAY'S PANCHANG ==
 {panchang_text}
 
+== CURRENT PLANETARY POSITIONS (sidereal, as of today — natal house numbers are pre-calculated) ==
+{today_planet_text}
+
 == UPCOMING SLOW-PLANET INGRESSES (next 24 months) ==
 {transit_text}
+
+⚠ GROUNDING RULE: Every house number you write MUST come directly from one of the two tables
+above (NATAL CHART or CURRENT PLANETARY POSITIONS). Never calculate, infer, or guess a house
+number yourself. If you are unsure, re-read the table.
 
 Today's date is {today.strftime("%B %d, %Y")}.
 Six months from today is approximately {(today.replace(month=((today.month+5)%12)+1, year=today.year+(today.month+5)//12)).strftime("%B %Y")}.
@@ -396,16 +419,17 @@ def generate_followup(
     prompt = (
         "The following is an ongoing consultation. You have already studied this chart and "
         "delivered the initial reading below. Now the native has a follow-up question.\n\n"
-        f"TODAY'S DATE: {today_str}.\n"
-        "CRITICAL TIMING RULE: Only reference transits, dasha periods, or planetary positions "
-        f"that are active on or after {today_str}. If a transit or period has already ended "
-        "before today, do not mention it as current or upcoming — acknowledge it as past if "
-        "relevant, or skip it entirely. Ground every timing statement in this anchor date.\n\n"
-        f"== CHART SUMMARY ==\n{chart_context}\n\n"
-        f"== INITIAL READING (Health / Career / Personal Relations) ==\n{reading_context}\n"
+        f"TODAY'S DATE: {today_str}.\n\n"
+        "GROUNDING RULES — follow these strictly:\n"
+        "1. Every house number you mention MUST come from the CHART SUMMARY below. "
+        "Never calculate or infer a house number yourself.\n"
+        "2. Only reference transits or dasha periods active on or after "
+        f"{today_str}. Acknowledge past periods as past; do not present them as current.\n"
+        "3. Write in plain English — briefly explain any Jyotish term you use.\n\n"
+        f"== CHART SUMMARY (pre-calculated — use these numbers exactly) ==\n{chart_context}\n\n"
+        f"== INITIAL READING ==\n{reading_context}\n"
         f"{history_block}\n"
         f"Native's question: {question}\n\n"
-        "Answer directly and specifically. Reference the natal chart, active dasha, or transits "
-        "where relevant. Keep the response concise (under 250 words) and actionable."
+        "Answer directly and specifically. Keep the response concise (under 250 words) and actionable."
     )
     return _call_gemini(prompt)
