@@ -61,16 +61,34 @@ def _fmt_planet_table(positions: dict, houses: dict, lagna: dict) -> str:
     return "\n".join(lines)
 
 
-def _fmt_today_positions(positions: dict, houses: dict) -> str:
-    """Format where every planet is TODAY and which natal house it occupies."""
-    lines = [f"{'Planet':<12} {'Current Rashi':<14} {'Natal House':>11}  {'Nakshatra'}"]
-    lines.append("-" * 60)
+def _fmt_today_positions(transit_data: dict) -> str:
+    """Format where every planet is TODAY with house from Lagna AND natal Moon."""
+    planets    = transit_data.get("planets", {})
+    lagna_rashi = transit_data.get("lagna_rashi", "")
+    moon_rashi  = transit_data.get("natal_moon_rashi", "")
+    sade_sati   = transit_data.get("sade_sati", False)
+    ss_phase    = transit_data.get("sade_sati_phase", "none")
+
+    lines = [
+        f"Reference: Lagna = {lagna_rashi} | Natal Moon = {moon_rashi}",
+        f"(H/Lagna = house counted from Ascendant; H/Moon = house counted from natal Moon — primary Jyotish reference)",
+        f"{'Planet':<12} {'Current Rashi':<15} {'H/Lagna':>7} {'H/Moon':>7}  {'Retro':>5}  {'Nakshatra'}",
+        "-" * 75,
+    ]
     for p in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]:
-        if p not in positions:
+        if p not in planets:
             continue
-        d = positions[p]
-        h = houses.get(p, "?")
-        lines.append(f"{p:<12} {d['rashi']:<14} {h:>11}  {d['nakshatra']}")
+        d = planets[p]
+        retro = "℞" if d.get("retrograde") else ""
+        lines.append(
+            f"{p:<12} {d['rashi']:<15} {d['house_from_lagna']:>7}  {d['house_from_moon']:>6}  "
+            f"{retro:>5}  {d['nakshatra']}"
+        )
+    if sade_sati and ss_phase != "none":
+        lines.append(
+            f"\n⚠ SADE SATI ({ss_phase} phase): Saturn is transiting the {ss_phase} zone of natal Moon "
+            f"(a significant 7.5-year cycle of pressure and transformation)."
+        )
     return "\n".join(lines)
 
 
@@ -125,8 +143,7 @@ def generate_reading(
     dasha_info: dict,
     panchang: dict,
     transit_events: list,
-    today_positions: dict,
-    today_houses: dict,
+    transit_data: dict,
     ayanamsa: float,
     today: date,
 ) -> dict:
@@ -134,7 +151,7 @@ def generate_reading(
     dasha_text        = _fmt_dasha(dasha_info)
     panchang_text     = _fmt_panchang(panchang, today)
     transit_text      = _fmt_transits(transit_events)
-    today_planet_text = _fmt_today_positions(today_positions, today_houses)
+    today_planet_text = _fmt_today_positions(transit_data)
 
     prompt = f"""Generate a Jyotish reading for {name}.
 
@@ -157,8 +174,10 @@ Lahiri Ayanamsa: {ayanamsa}°
 {transit_text}
 
 ⚠ GROUNDING RULE: Every house number you write MUST come directly from one of the two tables
-above (NATAL CHART or CURRENT PLANETARY POSITIONS). Never calculate, infer, or guess a house
-number yourself. If you are unsure, re-read the table.
+above (NATAL CHART or CURRENT PLANETARY POSITIONS). For transit planets the table gives two
+house numbers: H/Lagna (from Ascendant) and H/Moon (from natal Moon sign). In Jyotish,
+H/Moon is the primary transit reference — prefer it when interpreting transits. Never
+calculate, infer, or guess a house number yourself. If you are unsure, re-read the table.
 
 Today's date is {today.strftime("%B %d, %Y")}.
 Six months from today is approximately {(today.replace(month=((today.month+5)%12)+1, year=today.year+(today.month+5)//12)).strftime("%B %Y")}.

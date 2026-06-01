@@ -97,10 +97,9 @@ def generate():
         panchang = ast.get_panchang(today_jd)
         transit_events = ast.get_upcoming_transit_events(today_jd, months=24)
 
-        # Current positions of all planets TODAY mapped to natal houses
-        # This prevents the AI from guessing or inferring transit house numbers
-        today_positions = ast.get_planet_positions(today_jd)
-        today_houses    = ast.get_house_positions(lagna["rashi"], today_positions)
+        # Full Gochar snapshot: house from Lagna + natal Moon, retrograde, Sade Sati
+        # Both reference points are pre-calculated so the AI never has to infer house numbers
+        transit_data = ast.get_transit_data(today_jd, lagna["rashi"], positions["Moon"]["rashi"])
 
         # --- Claude reading ---
         if not os.getenv("GEMINI_API_KEY"):
@@ -117,8 +116,7 @@ def generate():
             dasha_info=dasha_info,
             panchang=panchang,
             transit_events=transit_events,
-            today_positions=today_positions,
-            today_houses=today_houses,
+            transit_data=transit_data,
             ayanamsa=ayanamsa,
             today=today,
         )
@@ -143,8 +141,7 @@ def generate():
             },
             "panchang": panchang,
             "transit_events": transit_events,
-            "today_positions": today_positions,
-            "today_houses": today_houses,
+            "transit_data": transit_data,
             "reading": reading,
         })
 

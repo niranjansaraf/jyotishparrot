@@ -1143,7 +1143,7 @@ let _chatMsgId = 0;
 function initChat(data) {
   // Build compact chart context string to send with every follow-up
   const p = data.positions, h = data.houses, di = data.dasha_info;
-  const tp = data.today_positions, th = data.today_houses;
+  const td = data.transit_data;   // { planets, sade_sati, sade_sati_phase, lagna_rashi, natal_moon_rashi }
   const cm = di.current_mahadasha, ca = di.current_antardasha;
   const planets = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 
@@ -1153,17 +1153,24 @@ function initChat(data) {
 
   ctx += `NATAL POSITIONS (birth chart — fixed):\n`;
   planets.forEach(pl => {
-    if (p[pl]) ctx += `  ${pl}: ${p[pl].rashi} House ${h[pl]} ${p[pl].nakshatra} pada${p[pl].pada}\n`;
+    if (p[pl]) ctx += `  ${pl}: ${p[pl].rashi} H${h[pl]} ${p[pl].nakshatra} pada${p[pl].pada}\n`;
   });
 
-  if (tp) {
-    ctx += `\nCURRENT TRANSIT POSITIONS (today — pre-calculated natal house numbers):\n`;
+  if (td && td.planets) {
+    ctx += `\nCURRENT TRANSIT POSITIONS — H/Lagna = house from Ascendant, H/Moon = house from natal Moon (primary reference):\n`;
+    ctx += `  (Natal Moon = ${td.natal_moon_rashi} | Lagna = ${td.lagna_rashi})\n`;
     planets.forEach(pl => {
-      if (tp[pl]) ctx += `  ${pl}: ${tp[pl].rashi} House ${th[pl]} ${tp[pl].nakshatra}\n`;
+      const d = td.planets[pl];
+      if (!d) return;
+      const retro = d.retrograde ? ' ℞' : '';
+      ctx += `  ${pl}: ${d.rashi}${retro} — H/Lagna ${d.house_from_lagna}, H/Moon ${d.house_from_moon} (${d.nakshatra})\n`;
     });
+    if (td.sade_sati && td.sade_sati_phase !== 'none') {
+      ctx += `\n  ⚠ Sade Sati (${td.sade_sati_phase} phase): Saturn transiting near natal Moon.\n`;
+    }
   }
 
-  ctx += `\n⚠ Use ONLY the house numbers listed above. Never calculate or infer house numbers.`;
+  ctx += `\n⚠ GROUNDING RULE: Use ONLY the house numbers listed above. For transits, prefer H/Moon (Jyotish primary reference). Never calculate or infer house numbers.`;
   _chartContext = ctx;
   _readingContext = [data.reading.health, data.reading.career, data.reading.personal_relations]
     .filter(Boolean).join('\n\n---\n\n');

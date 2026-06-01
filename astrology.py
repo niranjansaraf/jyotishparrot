@@ -101,37 +101,80 @@ def _nak_info(lon: float) -> Tuple[str, str, int]:
 
 
 def get_planet_positions(jd: float) -> Dict[str, dict]:
-    """Sidereal positions of all 9 grahas."""
+    """Sidereal positions of all 9 grahas, including retrograde flag."""
     positions = {}
+    flags = swe.FLG_SIDEREAL | swe.FLG_SPEED
     for name, pid in PLANET_IDS.items():
-        lon = _sidereal_lon(jd, pid)
+        result, _ = swe.calc_ut(jd, pid, flags)
+        lon   = result[0]
+        speed = result[3]   # degrees/day; negative = retrograde
         rashi_idx = int(lon / 30)
         nak, nak_lord, pada = _nak_info(lon)
         positions[name] = {
-            "longitude": round(lon, 3),
-            "rashi": RASHIS[rashi_idx],
-            "rashi_lord": RASHI_LORDS[RASHIS[rashi_idx]],
+            "longitude":       round(lon, 3),
+            "speed":           round(speed, 4),
+            "retrograde":      speed < 0,
+            "rashi":           RASHIS[rashi_idx],
+            "rashi_lord":      RASHI_LORDS[RASHIS[rashi_idx]],
             "degree_in_rashi": round(lon % 30, 2),
-            "nakshatra": nak,
-            "nakshatra_lord": nak_lord,
-            "pada": pada,
+            "nakshatra":       nak,
+            "nakshatra_lord":  nak_lord,
+            "pada":            pada,
         }
 
-    # Ketu is always 180° opposite Rahu
-    rahu_lon = positions["Rahu"]["longitude"]
-    ketu_lon = (rahu_lon + 180) % 360
-    rashi_idx = int(ketu_lon / 30)
+    # Ketu is always 180° opposite Rahu; nodes always retrograde
+    rahu_lon   = positions["Rahu"]["longitude"]
+    ketu_lon   = (rahu_lon + 180) % 360
+    rashi_idx  = int(ketu_lon / 30)
     nak, nak_lord, pada = _nak_info(ketu_lon)
     positions["Ketu"] = {
-        "longitude": round(ketu_lon, 3),
-        "rashi": RASHIS[rashi_idx],
-        "rashi_lord": RASHI_LORDS[RASHIS[rashi_idx]],
+        "longitude":       round(ketu_lon, 3),
+        "speed":           positions["Rahu"]["speed"],
+        "retrograde":      True,   # nodes always retrograde
+        "rashi":           RASHIS[rashi_idx],
+        "rashi_lord":      RASHI_LORDS[RASHIS[rashi_idx]],
         "degree_in_rashi": round(ketu_lon % 30, 2),
-        "nakshatra": nak,
-        "nakshatra_lord": nak_lord,
-        "pada": pada,
+        "nakshatra":       nak,
+        "nakshatra_lord":  nak_lord,
+        "pada":            pada,
     }
     return positions
+
+
+def get_transit_data(today_jd: float, lagna_rashi: str, natal_moon_rashi: str) -> dict:
+    """
+    Full Gochar (transit) snapshot: every planet's current sign, house from Lagna,
+    house from natal Moon sign (primary Jyotish reference), retrograde status,
+    and Sade Sati detection.
+    """
+    positions          = get_planet_positions(today_jd)
+    houses_from_lagna  = get_house_positions(lagna_rashi, positions)
+    houses_from_moon   = get_house_positions(natal_moon_rashi, positions)
+
+    planets = {}
+    for p, d in positions.items():
+        planets[p] = {
+            **d,
+            "house_from_lagna": houses_from_lagna[p],
+            "house_from_moon":  houses_from_moon[p],
+        }
+
+    # Sade Sati: Saturn in 12th, 1st, or 2nd from natal Moon
+    sat_from_moon = houses_from_moon.get("Saturn", 0)
+    sade_sati_phase = (
+        "approaching" if sat_from_moon == 12 else
+        "peak"        if sat_from_moon == 1  else
+        "releasing"   if sat_from_moon == 2  else
+        "none"
+    )
+
+    return {
+        "planets":          planets,
+        "sade_sati":        sade_sati_phase != "none",
+        "sade_sati_phase":  sade_sati_phase,
+        "lagna_rashi":      lagna_rashi,
+        "natal_moon_rashi": natal_moon_rashi,
+    }
 
 
 def get_lagna(jd: float, lat: float, lon: float) -> dict:
